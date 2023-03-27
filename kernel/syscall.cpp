@@ -243,8 +243,7 @@ SYSCALL(ReadEvent) {
     switch (msg->type) {
       case Message::kKeyPush:
         if (msg->arg.keyboard.keycode == 20 /* Q key */ &&
-            msg->arg.keyboard.modifier & (kLControlBitMask | kRControlBitMask))
-        {
+            msg->arg.keyboard.modifier & (kLControlBitMask | kRControlBitMask)) {
           app_events[i].type = AppEvent::kQuit;
           ++i;
         } else {
@@ -386,12 +385,13 @@ SYSCALL(ReadFile) {
 
 SYSCALL(DemandPages) {
   const size_t num_pages = arg1;
+  // const int flags = arg2;
   __asm__("cli");
   auto &task = task_manager->CurrentTask();
   __asm__("sti");
 
   const uint64_t dp_end = task.DPagingEnd();
-  task.SetDPagingBegin(dp_end + 4096 * num_pages);
+  task.SetDPagingEnd(dp_end + 4096 * num_pages);
   return { dp_end, 0 };
 }
 
@@ -409,10 +409,10 @@ SYSCALL(MapFile) {
 
   *file_size = task.Files()[fd]->Size();
   const uint64_t vaddr_end = task.FileMapEnd();
-  const uint64_t vaddr_beign = (vaddr_end - *file_size) & 0xffff'ffff'ffff'f000;
-  task.SetFileMapEnd(vaddr_beign);
-  task.FileMaps().push_back(FileMapping{fd, vaddr_beign, vaddr_end});
-  return { vaddr_beign, 0 };
+  const uint64_t vaddr_begin = (vaddr_end - *file_size) & 0xffff'ffff'ffff'f000;
+  task.SetFileMapEnd(vaddr_begin);
+  task.FileMaps().push_back(FileMapping{fd, vaddr_begin, vaddr_end});
+  return { vaddr_begin, 0 };
 }
 
 #undef SYSCALL

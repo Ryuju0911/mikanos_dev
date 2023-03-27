@@ -37,7 +37,7 @@ class Error {
     };
   
   Error(Code code, const char *file, int line)
-    : code_{code}, line_{line}, file_{file} {};
+      : code_{code}, line_{line}, file_{file} {};
 
   Code Cause() const {
     return this->code_;
@@ -82,10 +82,10 @@ class Error {
       "kUnknownXHCISpeedID",
       "kNoWaiter",
       "kNoPCIMSI",
+      "kUnknownPixelFormat",
       "kNoSuchTask",
       "kInvalidFormat",
       "kFrameTooSmall",
-      "kUnknownPixelFormat",
       "kInvalidFile",
       "kIsDirectory",
       "kNoSuchEntry",

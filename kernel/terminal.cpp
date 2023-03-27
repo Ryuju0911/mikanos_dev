@@ -373,6 +373,18 @@ void Terminal::ExecuteLine() {
     task_manager->NewTask()
       .InitContext(TaskTerminal, reinterpret_cast<int64_t>(first_arg))
       .Wakeup();
+  } else if (strcmp(command, "memstat") == 0) {
+    const auto p_stat = memory_manager->Stat();
+
+    char s[64];
+    sprintf(s, "Phys used: %lu frames (%llu MiB)\n",
+            p_stat.allocated_frames,
+            p_stat.allocated_frames * kBytesPerFrame / 1024 / 1024);
+    Print(s);
+    sprintf(s, "Phys total: %lu frames (%llu MiB)\n",
+            p_stat.total_frames,
+            p_stat.total_frames * kBytesPerFrame / 1024 / 1024);
+    Print(s);
   } else if (command[0] != 0) {
     auto [ file_entry, post_slash ] = fat::FindFile(command);
     if (!file_entry) {
@@ -392,7 +404,7 @@ void Terminal::ExecuteLine() {
   }
 }
 
-Error Terminal::ExecuteFile(const fat::DirectoryEntry &file_entry,
+Error Terminal::ExecuteFile(fat::DirectoryEntry &file_entry,
                             char *command, char *first_arg) {
   std::vector<uint8_t> file_buf(file_entry.file_size);
   fat::LoadFile(&file_buf[0], file_buf.size(), file_entry);
@@ -672,4 +684,8 @@ size_t TerminalFileDescriptor::Read(void *buf, size_t len) {
 size_t TerminalFileDescriptor::Write(const void *buf, size_t len) {
   term_.Print(reinterpret_cast<const char*>(buf), len);
   return len;
+}
+
+size_t TerminalFileDescriptor::Load(void *buf, size_t len, size_t offset) {
+  return 0;
 }

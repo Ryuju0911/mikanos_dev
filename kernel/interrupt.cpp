@@ -76,7 +76,7 @@ namespace {
   }
 
   __attribute__((interrupt))
-  void IntHamdlerPF(InterruptFrame *frame, uint64_t error_code) {
+  void IntHandlerPF(InterruptFrame *frame, uint64_t error_code) {
     uint64_t cr2 = GetCR2();
     if (auto err = HandlePageFault(error_code, cr2); !err) {
       return;
@@ -118,7 +118,7 @@ namespace {
   FaultHandlerWithError(NP)
   FaultHandlerWithError(SS)
   FaultHandlerWithError(GP)
-  FaultHandlerWithError(PF)
+  // FaultHandlerWithError(PF)
   FaultHandlerNoError(MF)
   FaultHandlerWithError(AC)
   FaultHandlerNoError(MC)

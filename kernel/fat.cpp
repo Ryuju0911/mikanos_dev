@@ -284,7 +284,7 @@ size_t FileDescriptor::Read(void *buf, size_t len) {
 
 size_t FileDescriptor::Write(const void *buf, size_t len) {
   auto num_cluster = [](size_t bytes) {
-    return (bytes * bytes_per_cluster - 1) / bytes_per_cluster;
+    return (bytes + bytes_per_cluster - 1) / bytes_per_cluster;
   };
 
   if (wr_cluster_ == 0) {

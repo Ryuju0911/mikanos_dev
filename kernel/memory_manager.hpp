@@ -33,8 +33,13 @@ class FrameID {
     size_t id_;
 };
 
-static const FrameID kNullFrame(std::numeric_limits<size_t>::max());
+static const FrameID kNullFrame{std::numeric_limits<size_t>::max()};
 // #@@range_end(frame_id)
+
+struct MemoryStat {
+  size_t allocated_frames;
+  size_t total_frames;
+};
 
 // #@@range_begin(bitmap_memory_manager)
 /** @brief Per-frame memory management class using a bitmap array.
@@ -76,6 +81,8 @@ class BitmapMemoryManager {
      * within the range.
      */ 
     void SetMemoryRange(FrameID range_begin, FrameID range_end);
+
+    MemoryStat Stat() const;
   
   private:
     std::array<MapLineType, kFrameCount / kBitsPerMapLine> alloc_map_;

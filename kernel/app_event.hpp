@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef __cplucplus
+#ifdef __cplusplus
 #include <cstdint>
 extern "C" {
 #else
@@ -25,8 +25,8 @@ struct AppEvent {
 
     struct {
       int x, y;
-      int press;
-      int button;  // 1: press, 0: release
+      int press; // 1: press, 0: release
+      int button;
     } mouse_button;
 
     struct {
@@ -38,11 +38,11 @@ struct AppEvent {
       uint8_t modifier;
       uint8_t keycode;
       char ascii;
-      int press;  // 1: press, 0: release
+      int press; // 1: press, 0: release
     } keypush;
   } arg;
 };
 
-#ifdef __cplucplus
+#ifdef __cplusplus
 } // extern "C"
 #endif

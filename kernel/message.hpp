@@ -7,10 +7,10 @@ enum class LayerOperation {
 struct Message {
   enum Type {
     kInterruptXHCI,
+    kTimerTimeout,
     kKeyPush,
     kLayer,
     kLayerFinish,
-    kTimerTimeout,
     kMouseMove,
     kMouseButton,
     kWindowActive,
@@ -51,7 +51,7 @@ struct Message {
     } mouse_button;
 
     struct {
-      int activate; // 1: activate, 0: disactivate
+      int activate; // 1: activate, 0: deactivate
     } window_active;
   } arg;
 };
