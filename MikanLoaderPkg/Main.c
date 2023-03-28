@@ -70,7 +70,7 @@ EFI_STATUS SaveMemoryMap(struct MemoryMap *map, EFI_FILE_PROTOCOL *file) {
   for (iter = (EFI_PHYSICAL_ADDRESS)map->buffer, i = 0;
        iter < (EFI_PHYSICAL_ADDRESS)map->buffer + map->map_size;
        iter += map->descriptor_size, i++) {
-    EFI_MEMORY_DESCRIPTOR* desc = (EFI_MEMORY_DESCRIPTOR*)iter;
+    EFI_MEMORY_DESCRIPTOR *desc = (EFI_MEMORY_DESCRIPTOR*)iter;
     len = AsciiSPrint(
         buf, sizeof(buf),
         "%u, %x, %-ls, %08lx, %lx, %lx\n",
@@ -120,7 +120,7 @@ EFI_STATUS OpenGOP(EFI_HANDLE image_handle,
                    EFI_GRAPHICS_OUTPUT_PROTOCOL **gop) {
   EFI_STATUS status;
   UINTN num_gop_handles = 0;
-  EFI_HANDLE* gop_handles = NULL;
+  EFI_HANDLE *gop_handles = NULL;
 
   status = gBS->LocateHandleBuffer(
       ByProtocol,
@@ -165,13 +165,10 @@ const CHAR16 *GetPixelFormatUnicode(EFI_GRAPHICS_PIXEL_FORMAT fmt) {
   }
 }
 
-// #@@range_begin(halt)
 void Halt(void) {
   while (1) __asm__("hlt");
 }
-// #@@range_end(halt)
 
-// #@@range_begin(calc_addr_func)
 void CalcLoadAddressRange(Elf64_Ehdr *ehdr, UINT64 *first, UINT64 *last) {
   Elf64_Phdr *phdr = (Elf64_Phdr*)((UINT64)ehdr + ehdr->e_phoff);
   *first = MAX_UINT64;
@@ -182,9 +179,7 @@ void CalcLoadAddressRange(Elf64_Ehdr *ehdr, UINT64 *first, UINT64 *last) {
     *last = MAX(*last, phdr[i].p_vaddr + phdr[i].p_memsz);
   }
 }
-// #@@range_end(calc_addr_func)
 
-// #@@range_begin(copy_segm_func)
 void CopyLoadSegments(Elf64_Ehdr *ehdr) {
   Elf64_Phdr *phdr = (Elf64_Phdr*)((UINT64)ehdr + ehdr->e_phoff);
   for (Elf64_Half i = 0; i < ehdr->e_phnum; ++i) {
@@ -197,9 +192,7 @@ void CopyLoadSegments(Elf64_Ehdr *ehdr) {
     SetMem((VOID*)(phdr[i].p_vaddr + phdr[i].p_filesz), remain_bytes, 0);
   }
 }
-// #@@range_end(copy_segm_func)
 
-// #@@range_begin(read_file)
 EFI_STATUS ReadFile(EFI_FILE_PROTOCOL *file, VOID **buffer) {
   EFI_STATUS status;
 
@@ -222,9 +215,7 @@ EFI_STATUS ReadFile(EFI_FILE_PROTOCOL *file, VOID **buffer) {
 
   return file->Read(file, &file_size, *buffer);
 }
-// #@@range_end(read_file)
 
-// #@@range_begin(open_blockio)
 EFI_STATUS OpenBlockIoProtocolForLoadedImage(
     EFI_HANDLE image_handle, EFI_BLOCK_IO_PROTOCOL **block_io) {
   EFI_STATUS status;
@@ -251,9 +242,7 @@ EFI_STATUS OpenBlockIoProtocolForLoadedImage(
 
   return status;
 }
-// #@@range_end(open_blockio)
 
-// #@@range_begin(read_blocks)
 EFI_STATUS ReadBlocks(
       EFI_BLOCK_IO_PROTOCOL *block_io, UINT32 media_id,
       UINTN read_bytes, VOID **buffer) {
@@ -273,7 +262,6 @@ EFI_STATUS ReadBlocks(
 
   return status;
 }
-// #@@range_end(read_blocks)
 
 EFI_STATUS EFIAPI UefiMain(
     EFI_HANDLE image_handle,
@@ -354,9 +342,7 @@ EFI_STATUS EFIAPI UefiMain(
     Print(L"error: %r", status);
     Halt();
   }
-  // #@@range_end(read_kernel)
 
-  // #@@range_begin(alloc_pages)
   Elf64_Ehdr *kernel_ehdr = (Elf64_Ehdr*)kernel_buffer;
   UINT64 kernel_first_addr, kernel_last_addr;
   CalcLoadAddressRange(kernel_ehdr, &kernel_first_addr, &kernel_last_addr);
@@ -368,9 +354,7 @@ EFI_STATUS EFIAPI UefiMain(
     Print(L"failed to allocate pages: %r\n", status);
     Halt();
   }
-  // #@@range_end(alloc_pages)
 
-  // #@@range_begin(copy_segments)
   CopyLoadSegments(kernel_ehdr);
   Print(L"Kernel: 0x%0lx - 0x%0lx\n", kernel_first_addr, kernel_last_addr);
 
@@ -379,9 +363,7 @@ EFI_STATUS EFIAPI UefiMain(
     Print(L"failed to free pool: %r\n", status);
     Halt();
   }
-  // #@@range_end(copy_segments)
 
-  // #@@range_begin(read_volume)
   VOID *volume_image;
 
   EFI_FILE_PROTOCOL *volume_file;
@@ -417,9 +399,7 @@ EFI_STATUS EFIAPI UefiMain(
       Halt();
     }
   }
-  // #@@range_end(read_volume)
 
-  // #@@range_begin(exit_bs)
   status = gBS->ExitBootServices(image_handle, memmap.map_key);
   if (EFI_ERROR(status)) {
     status = GetMemoryMap(&memmap);
@@ -433,13 +413,9 @@ EFI_STATUS EFIAPI UefiMain(
       Halt();
     }
   }
-  // #@@range_end(exit_bs)
 
-  // #@@range_begin(get_entry_point)
   UINT64 entry_addr = *(UINT64*)(kernel_first_addr + 24);
-  // #@@range_end(get_entry_point)
 
-  // #@@range_begin(pass_frame_buffer_config_and_memory_map)
   struct FrameBufferConfig config = {
     (UINT8*)gop->Mode->FrameBufferBase,
     gop->Mode->Info->PixelsPerScanLine,
@@ -475,7 +451,6 @@ EFI_STATUS EFIAPI UefiMain(
                               VOID*);
   EntryPointType* entry_point = (EntryPointType*)entry_addr;
   entry_point(&config, &memmap, acpi_table, volume_image);
-  // #@@range_end(pass_frame_buffer_config_and_memory_map)
 
   Print(L"All done\n");
 
