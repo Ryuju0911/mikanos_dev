@@ -371,7 +371,9 @@ void Terminal::ExecuteLine() {
   char *pipe_char = strchr(&linebuf_[0], '|');
   if (first_arg) {
     *first_arg = 0;
+    do {
     ++first_arg;
+    } while (isspace(*first_arg));
   }
 
   auto original_stdout = files_[1];
@@ -471,28 +473,34 @@ void Terminal::ExecuteLine() {
       }
     }
   } else if (strcmp(command, "cat") == 0) {
-    auto [ file_entry, post_slash ] = fat::FindFile(first_arg);
-    if (!file_entry) {
-      PrintToFD(*files_[2], "no such file: %s\n", first_arg);
-      exit_code = 1;
-    } else if (file_entry->attr != fat::Attribute::kDirectory && post_slash) {
-      char name[13];
-      fat::FormatName(*file_entry, name);
-      PrintToFD(*files_[2], "%s is not a directory\n", name);
-      exit_code = 1;
+    std::shared_ptr<FileDescriptor> fd;
+    if (!first_arg || first_arg[0] == '\0') {
+      fd = files_[0];
     } else {
-      fat::FileDescriptor fd{*file_entry};
-      char u8buf[1024];
-
-      DrawCursor(false);
-      while (true) {
-        if (ReadDelim(fd, '\n', u8buf, sizeof(u8buf)) == 0) {
-          break;
-        }
-        PrintToFD(*files_[1], "%s", u8buf);
+      auto [ file_entry, post_slash ] = fat::FindFile(first_arg);
+      if (!file_entry) {
+        PrintToFD(*files_[2], "no such file: %s\n", first_arg);
+        exit_code = 1;
+      } else if (file_entry->attr != fat::Attribute::kDirectory && post_slash) {
+        char name[13];
+        fat::FormatName(*file_entry, name);
+        PrintToFD(*files_[2], "%s is not a directory\n", name);
+        exit_code = 1;
+      } else {
+        fd = std::make_shared<fat::FileDescriptor>(*file_entry);
       }
-      DrawCursor(true);
     }
+      if (fd) {
+        char u8buf[1024];
+        DrawCursor(false);
+        while (true) {
+          if (ReadDelim(*fd, '\n', u8buf, sizeof(u8buf)) == 0) {
+            break;
+          }
+          PrintToFD(*files_[1], "%s", u8buf);
+        }
+        DrawCursor(true);
+      }
   } else if (strcmp(command, "noterm") == 0) {
     auto term_desc = new TerminalDescriptor{
       first_arg, true, false, files_
@@ -818,6 +826,7 @@ size_t TerminalFileDescriptor::Read(void *buf, size_t len) {
 
     bufc[0] = msg->arg.keyboard.ascii;
       term_.Print(bufc, 1);
+      term_.Redraw();
       return 1;
   }
 }
