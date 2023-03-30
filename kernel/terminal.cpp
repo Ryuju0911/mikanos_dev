@@ -577,7 +577,7 @@ WithError<int> Terminal::ExecuteFile(fat::DirectoryEntry &file_entry,
   // #@@range_end(arrange_args)
 
   // #@@range_begin(call_app)
-  const int stack_size = 8 * 4096;
+  const int stack_size = 16 * 4096;
   LinearAddress4Level stack_frame_addr{0xffff'ffff'ffff'f000 - stack_size};
   if (auto err = SetupPageMaps(stack_frame_addr, stack_size / 4096)) {
     return { 0, err };
@@ -736,7 +736,6 @@ void TaskTerminal(uint64_t task_id, int64_t data) {
     delete term_desc;
     __asm__("cli");
     task_manager->Finish(terminal->LastExitCode());
-    __asm__("sti");
   }
 
   auto add_blink_timer = [task_id](unsigned long t) {

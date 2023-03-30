@@ -215,7 +215,7 @@ int LayerManager::GetHeight(unsigned int id) {
 namespace {
   FrameBuffer *screen;
 
-  Error SendWindowActiveMessage(unsigned long layer_id, int activate) {
+  Error SendWindowActiveMessage(unsigned int layer_id, int activate) {
     auto task_it = layer_task_map->find(layer_id);
     if (task_it == layer_task_map->end()) {
       return MAKE_ERROR(Error::kNoSuchTask);
