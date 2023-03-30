@@ -4,6 +4,8 @@
 #include <memory>
 #include <vector>
 
+
+#include "error.hpp"
 #include "graphics.hpp"
 #include "message.hpp"
 #include "window.hpp"
@@ -129,3 +131,5 @@ constexpr Message MakeLayerMessage(
   msg.arg.layer.h = area.size.y;
   return msg;
 }
+
+Error CloseLayer(unsigned int layer_id);
